@@ -6,6 +6,8 @@ var webpack = require('webpack'),
   HtmlWebpackPlugin = require('html-webpack-plugin'),
   TerserPlugin = require('terser-webpack-plugin');
 var { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
+
 
 const ASSET_PATH = process.env.ASSET_PATH || '/';
 
@@ -43,6 +45,7 @@ var options = {
     contentScript: path.join(__dirname, 'src', 'pages', 'Content', 'index.js'),
     devtools: path.join(__dirname, 'src', 'pages', 'Devtools', 'index.js'),
     panel: path.join(__dirname, 'src', 'pages', 'Panel', 'index.jsx'),
+    buffer:['buffer/']
   },
   chromeExtensionBoilerplate: {
     notHotReload: ['background', 'contentScript', 'devtools'],
@@ -108,8 +111,16 @@ var options = {
     extensions: fileExtensions
       .map((extension) => '.' + extension)
       .concat(['.js', '.jsx', '.ts', '.tsx', '.css']),
+    fallback:{ 
+       'util': require.resolve('util/'),
+       'stream': require.resolve('stream-browserify'),
+       'fs': false,
+       'tls': require.resolve('tls'),
+       'child_process': false,  
+    }
   },
   plugins: [
+    new NodePolyfillPlugin(),
     new CleanWebpackPlugin({ verbose: false }),
     new webpack.ProgressPlugin(),
     // expose and write the allowed env vars on the compiled bundle
@@ -194,6 +205,7 @@ var options = {
   infrastructureLogging: {
     level: 'info',
   },
+ 
 };
 
 if (env.NODE_ENV === 'development') {
